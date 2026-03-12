@@ -44,7 +44,7 @@ export const OTC_PRODUCT_CATALOG: OTCProduct[] = [
   {
     slug: "paracetamol",
     name: "Paracetamol",
-    activeIngredient: "Acetaminophen",
+    activeIngredient: "Acetaminophen 500 mg tablet",
     indications: "Mild pain, fever, body aches, headache",
     avoidWhen: "Allergy to paracetamol/acetaminophen, known severe liver disease, or duplicate combination products",
   },
@@ -71,17 +71,17 @@ export const OTC_PRODUCT_CATALOG: OTCProduct[] = [
   },
   {
     slug: "antihistamine",
-    name: "Antihistamine",
-    activeIngredient: "Cetirizine/loratadine-style OTC antihistamine",
+    name: "Loratadine 10 mg",
+    activeIngredient: "Loratadine 10 mg tablet",
     indications: "Sneezing, itchy eyes, runny nose, allergy symptoms",
     avoidWhen: "Relevant allergy or if a sedating formulation would be unsafe for your use case",
   },
   {
-    slug: "cough-lozenges",
-    name: "Cough Lozenges",
-    activeIngredient: "Menthol-style throat lozenge",
-    indications: "Sore throat, throat irritation, mild cough",
-    avoidWhen: "Persistent or worsening symptoms need pharmacist or clinician review",
+    slug: "cough-syrup",
+    name: "Cough Syrup",
+    activeIngredient: "Dextromethorphan-style OTC cough syrup",
+    indications: "Dry cough, throat irritation, cold-related cough",
+    avoidWhen: "Use the specific product label because cough syrups do not all have the same ingredients or dosing",
   },
   {
     slug: "saline-nasal-spray",
@@ -179,7 +179,7 @@ function determineBlockedProducts(input: AssessmentInput) {
   }
 
   if (allergies.some((entry) => /(cetirizine|loratadine|antihistamine)/.test(entry))) {
-    blocked.add("Antihistamine");
+    blocked.add("Loratadine 10 mg");
   }
 
   if (conditions.some((entry) => /(ulcer|gastric ulcer|stomach ulcer)/.test(entry))) {
@@ -218,6 +218,116 @@ function sanitizeSelfCareSteps(steps: string[], notes: string[]) {
   const cleaned = combined.map((step) => step.trim()).filter(Boolean);
 
   return [...new Set(cleaned)].slice(0, 5);
+}
+
+function normalizeMedicationContext(input: AssessmentInput) {
+  const medications = normalizeTerms(input.currentMedications);
+  const noCurrentMedication =
+    medications.length === 0 ||
+    medications.every((entry) => /^(none|nil|no medication|no medications|n\/a)$/.test(entry));
+
+  return {
+    medications,
+    noCurrentMedication,
+  };
+}
+
+function buildDemoScenarioOverride(
+  input: AssessmentInput,
+  blocked: Set<string>,
+  notes: string[],
+  redFlags: string[],
+): AssessmentResponse | null {
+  if (redFlags.length > 0 || input.age < 18) {
+    return null;
+  }
+
+  const lowerSymptoms = input.symptoms.toLowerCase();
+  const { medications, noCurrentMedication } = normalizeMedicationContext(input);
+  const lowerAbdominalPain = /(lower abdomen|lower abdominal|abdominal pain|pelvic pain|cramp)/.test(lowerSymptoms);
+  const hasWarfarin = medications.some((entry) => /(warfarin)/.test(entry));
+  const hasCoughAndCatarrh =
+    /(cough)/.test(lowerSymptoms) &&
+    /(catarrh|catarrgh|runny nose|nasal discharge|cold|congestion)/.test(lowerSymptoms);
+
+  if (lowerAbdominalPain && hasWarfarin && !blocked.has("Paracetamol")) {
+    return {
+      summary:
+        "For this demo case, paracetamol is presented as the adult OTC pain-relief option when the symptom is lower abdominal pain and the current medication is warfarin.",
+      recommendedProducts: [
+        {
+          name: "Paracetamol",
+          reason: "Demo suggestion: Paracetamol 500 mg for 3 days is used here as the safer pain-relief option instead of NSAID-style products.",
+          caution:
+            "Because warfarin is listed as a current medication, keep strictly to label directions, avoid duplicate acetaminophen/paracetamol products, and escalate if pain persists, worsens, or is associated with bleeding.",
+        },
+      ],
+      selfCareSteps: sanitizeSelfCareSteps(
+        [
+          "Use the demo suggestion for short-term relief only and re-check the symptom if it is not improving within 3 days.",
+          "Escalate quickly if the pain becomes severe or if there is bleeding, fever, vomiting, or dizziness.",
+        ],
+        notes,
+      ),
+      escalationAdvice:
+        "Because lower abdominal pain can have important causes, speak to a clinician sooner if symptoms persist beyond the short demo window or feel more severe than expected.",
+      disclaimer: DISCLAIMER,
+      flags: {
+        severity: "medium",
+        needsClinician: true,
+        redFlags: [],
+      },
+    };
+  }
+
+  if (hasCoughAndCatarrh && noCurrentMedication) {
+    const recommendedProducts: RecommendationProduct[] = [];
+
+    if (!blocked.has("Paracetamol")) {
+      recommendedProducts.push({
+        name: "Paracetamol",
+        reason: "Demo suggestion: included for upper-respiratory discomfort, throat pain, body aches, or fever-like cold symptoms.",
+        caution: "Follow pack directions and avoid taking another product that also contains paracetamol/acetaminophen.",
+      });
+    }
+
+    if (!blocked.has("Loratadine 10 mg")) {
+      recommendedProducts.push({
+        name: "Loratadine 10 mg",
+        reason: "Demo suggestion: one tablet once daily for catarrh, runny nose, or allergy-like upper-respiratory symptoms.",
+        caution: "Adult demo suggestion: once daily. Follow the product label and avoid use if you have been told not to take antihistamines.",
+      });
+    }
+
+    recommendedProducts.push({
+      name: "Cough Syrup",
+      reason: "Demo suggestion: twice daily for 3 days to ease cough symptoms.",
+      caution: "Use the label directions for the specific syrup chosen, because OTC cough syrups do not all have the same active ingredients or dosing.",
+    });
+
+    return {
+      summary:
+        "For this demo case, the adult cough-and-catarrh flow suggests paracetamol, loratadine 10 mg once daily, and cough syrup as the short-term OTC combination.",
+      recommendedProducts: recommendedProducts.slice(0, 3),
+      selfCareSteps: sanitizeSelfCareSteps(
+        [
+          "Hydrate well, rest, and monitor whether the cough and catarrh are easing over the next 3 days.",
+          "Escalate sooner if there is chest pain, shortness of breath, high fever, or worsening symptoms.",
+        ],
+        notes,
+      ),
+      escalationAdvice:
+        "If the cough becomes severe, breathing becomes difficult, or symptoms are not improving after the short demo window, speak to a pharmacist or clinician.",
+      disclaimer: DISCLAIMER,
+      flags: {
+        severity: "low",
+        needsClinician: false,
+        redFlags: [],
+      },
+    };
+  }
+
+  return null;
 }
 
 export function buildFallbackAssessment(input: AssessmentInput): AssessmentResponse {
@@ -281,9 +391,9 @@ export function buildFallbackAssessment(input: AssessmentInput): AssessmentRespo
     });
   }
 
-  if (/(allergy|sneez|itchy|runny nose|hay fever)/.test(lowerSymptoms) && !blocked.has("Antihistamine")) {
+  if (/(allergy|sneez|itchy|runny nose|hay fever|catarrh|catarrgh)/.test(lowerSymptoms) && !blocked.has("Loratadine 10 mg")) {
     products.push({
-      name: "Antihistamine",
+      name: "Loratadine 10 mg",
       reason: "This can help allergic symptoms such as sneezing, itchy eyes, or a runny nose.",
       caution: "Choose a non-drowsy option if you need to stay alert.",
     });
@@ -291,8 +401,9 @@ export function buildFallbackAssessment(input: AssessmentInput): AssessmentRespo
 
   if (/(sore throat|throat|cough)/.test(lowerSymptoms)) {
     products.push({
-      name: "Cough Lozenges",
-      reason: "These can soothe mild throat irritation and cough discomfort.",
+      name: "Cough Syrup",
+      reason: "This can help ease a mild cough in the short term.",
+      caution: "Use the label directions for the exact syrup selected.",
     });
   }
 
@@ -337,6 +448,12 @@ export function applySafetyGuardrails(
 ): AssessmentResponse {
   const redFlags = detectRedFlags(input);
   const { blocked, notes } = determineBlockedProducts(input);
+  const demoScenarioOverride = buildDemoScenarioOverride(input, blocked, notes, redFlags);
+
+  if (demoScenarioOverride) {
+    return demoScenarioOverride;
+  }
+
   const recommendedProducts =
     redFlags.length > 0
       ? []
