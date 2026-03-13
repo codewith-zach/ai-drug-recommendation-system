@@ -1,28 +1,28 @@
-export type SymptomSeverity = "mild" | "moderate" | "severe";
+export type AgeGroup = "adult" | "child";
 
 export type AssessmentInput = {
-  age: number;
-  sex: string;
-  weightKg: number | null;
-  allergies: string[];
-  existingConditions: string[];
-  currentMedications: string[];
-  isPregnantOrBreastfeeding: boolean;
-  symptomDuration: string;
-  symptomSeverity: SymptomSeverity;
+  ageGroup: AgeGroup;
   symptoms: string;
+  currentMedications: string[];
+  allergies: string[];
+  symptomDuration: string;
 };
 
 export type RecommendationProduct = {
   name: string;
+  dosage: string;
+  function: string;
   reason: string;
   caution?: string;
 };
 
 export type AssessmentResponse = {
   summary: string;
+  symptomClusters: string[];
+  avoidedProducts: string[];
   recommendedProducts: RecommendationProduct[];
-  selfCareSteps: string[];
+  explanation: string;
+  safetyNotes: string[];
   escalationAdvice: string;
   disclaimer: string;
   flags: {
@@ -35,8 +35,11 @@ export type AssessmentResponse = {
 type OTCProduct = {
   slug: string;
   name: string;
-  activeIngredient: string;
+  function: string;
   indications: string;
+  dosageAdult: string;
+  dosageChild?: string;
+  adultOnly?: boolean;
   avoidWhen: string;
 };
 
@@ -44,83 +47,74 @@ export const OTC_PRODUCT_CATALOG: OTCProduct[] = [
   {
     slug: "paracetamol",
     name: "Paracetamol",
-    activeIngredient: "Acetaminophen 500 mg tablet",
-    indications: "Mild pain, fever, body aches, headache",
-    avoidWhen: "Allergy to paracetamol/acetaminophen, known severe liver disease, or duplicate combination products",
+    function: "Pain and fever relief",
+    indications: "Pain, fever, mild body aches, mild abdominal discomfort",
+    dosageAdult: "1 tablet every 8 hours. Maximum duration: 3 days. Maximum daily dose: 4,000 mg.",
+    dosageChild: "Use a pediatric formulation with age- and weight-specific label dosing only.",
+    avoidWhen: "Paracetamol allergy, duplicate paracetamol-containing products, or known severe liver disease.",
   },
   {
-    slug: "ibuprofen",
-    name: "Ibuprofen",
-    activeIngredient: "Ibuprofen",
-    indications: "Inflammatory pain, cramps, headache, fever",
-    avoidWhen: "Ulcer history, kidney disease, anticoagulant use, pregnancy/breastfeeding, or NSAID allergy",
-  },
-  {
-    slug: "antacid",
-    name: "Antacid",
-    activeIngredient: "Calcium carbonate / magnesium-based OTC antacid",
-    indications: "Heartburn, reflux, indigestion",
-    avoidWhen: "Relevant allergy or when the label warns against your other medications",
-  },
-  {
-    slug: "oral-rehydration-salts",
-    name: "Oral Rehydration Salts",
-    activeIngredient: "Electrolyte replacement salts",
-    indications: "Diarrhea, vomiting, dehydration support",
-    avoidWhen: "Repeated vomiting, blood in stool, or severe dehydration symptoms need clinician review",
-  },
-  {
-    slug: "antihistamine",
-    name: "Loratadine 10 mg",
-    activeIngredient: "Loratadine 10 mg tablet",
-    indications: "Sneezing, itchy eyes, runny nose, allergy symptoms",
-    avoidWhen: "Relevant allergy or if a sedating formulation would be unsafe for your use case",
+    slug: "flucorday-capsules",
+    name: "Flucorday Capsules",
+    function: "Relieves cold and flu symptoms and may reduce nasal congestion",
+    indications: "Cold symptoms, cough, catarrh, upper respiratory irritation",
+    dosageAdult: "2 capsules every 12 hours.",
+    adultOnly: true,
+    avoidWhen: "Children, ingredient allergy, or when the label warns against your current medicines.",
   },
   {
     slug: "cough-syrup",
-    name: "Cough Syrup",
-    activeIngredient: "Dextromethorphan-style OTC cough syrup",
-    indications: "Dry cough, throat irritation, cold-related cough",
-    avoidWhen: "Use the specific product label because cough syrups do not all have the same ingredients or dosing",
+    name: "Dextromethorphan Cough Syrup",
+    function: "Suppresses persistent cough and soothes throat irritation",
+    indications: "Cough, throat irritation, mild upper respiratory symptoms",
+    dosageAdult: "10 ml every 8 hours.",
+    adultOnly: true,
+    avoidWhen: "Children without pharmacist or clinician advice, ingredient allergy, or when the label warns against combination use.",
   },
   {
-    slug: "saline-nasal-spray",
-    name: "Saline Nasal Spray",
-    activeIngredient: "Sterile saline",
-    indications: "Nasal congestion, dryness, sinus irritation",
-    avoidWhen: "Seek review if symptoms suggest infection, high fever, or breathing trouble",
+    slug: "cetirizine",
+    name: "Cetirizine 10 mg",
+    function: "Reduces catarrh and allergy-related symptoms",
+    indications: "Catarrh, allergy symptoms, runny nose, sneezing",
+    dosageAdult: "Once daily.",
+    adultOnly: true,
+    avoidWhen: "Children without pharmacist advice or allergy to cetirizine or similar antihistamines.",
   },
 ];
 
 const DISCLAIMER =
-  "This demo provides informational OTC wellness guidance only. It is not a diagnosis, prescription, or emergency service.";
+  "This system provides informational OTC guidance only. It does not diagnose illness and is not a substitute for urgent or professional medical care.";
 
 const PRODUCT_MATCHERS = OTC_PRODUCT_CATALOG.map((product) => ({
   product,
-  aliases: [
-    product.name.toLowerCase(),
-    product.slug.replace(/-/g, " "),
-    product.activeIngredient.toLowerCase(),
-  ],
+  aliases: [product.name.toLowerCase(), product.slug.replace(/-/g, " ")],
 }));
 
+const SYMPTOM_CLUSTERS: Array<{ label: string; pattern: RegExp }> = [
+  { label: "Pain / inflammation", pattern: /(pain|ache|cramp|abdominal|abdomen|headache|fever)/ },
+  { label: "Respiratory", pattern: /(cough|cold|flu|throat|congestion|nasal|catarrh)/ },
+  { label: "Allergic / respiratory", pattern: /(catarrh|runny nose|sneez|allerg|itchy)/ },
+];
+
 const RED_FLAG_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
-  { label: "chest pain or breathing trouble", pattern: /(chest pain|trouble breathing|shortness of breath)/ },
-  { label: "fainting or seizures", pattern: /(faint|passed out|seizure)/ },
-  { label: "bleeding or blood", pattern: /(heavy bleeding|blood|black stool|vomit blood)/ },
-  { label: "pregnancy-related abdominal concern", pattern: /(pregnan|postpartum|contraction)/ },
-  { label: "severe abdominal pain", pattern: /(severe abdominal|sharp abdominal|unbearable pain)/ },
-  { label: "persistent high fever", pattern: /(very high fever|high fever|fever for [3-9] days|fever for a week)/ },
+  { label: "severe abdominal pain", pattern: /(severe abdominal|unbearable pain|rigid abdomen|sharp abdominal)/ },
+  { label: "bleeding or black stool", pattern: /(heavy bleeding|black stool|vomit blood|blood in stool)/ },
+  { label: "difficulty breathing or chest symptoms", pattern: /(shortness of breath|trouble breathing|chest pain)/ },
+  { label: "fainting or seizure", pattern: /(faint|passed out|seizure)/ },
+  { label: "persistent high fever", pattern: /(very high fever|high fever for|fever for more than)/ },
 ];
 
 function splitList(value: unknown) {
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean);
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
 
   if (typeof value === "string") {
     return value
-      .split(",")
+      .split(/,|\n/)
       .map((item) => item.trim())
       .filter(Boolean);
   }
@@ -130,6 +124,23 @@ function splitList(value: unknown) {
 
 function normalizeTerms(values: string[]) {
   return values.map((value) => value.toLowerCase().trim()).filter(Boolean);
+}
+
+function detectSymptomClusters(symptoms: string) {
+  const lowerSymptoms = symptoms.toLowerCase();
+
+  return SYMPTOM_CLUSTERS.filter(({ pattern }) => pattern.test(lowerSymptoms)).map(({ label }) => label);
+}
+
+function detectRedFlags(input: AssessmentInput) {
+  const haystack = `${input.symptoms} ${input.symptomDuration}`.toLowerCase();
+  const flags = RED_FLAG_PATTERNS.filter(({ pattern }) => pattern.test(haystack)).map(({ label }) => label);
+
+  if (/more than 7 days|more than a week|over a week/.test(haystack)) {
+    flags.push("symptoms lasting longer than 7 days");
+  }
+
+  return [...new Set(flags)];
 }
 
 function resolveCatalogProduct(name: string) {
@@ -144,210 +155,111 @@ function resolveCatalogProduct(name: string) {
   return null;
 }
 
-function detectRedFlags(input: AssessmentInput) {
-  const symptomText = `${input.symptoms} ${input.symptomDuration}`.toLowerCase();
-  const redFlags = RED_FLAG_PATTERNS.filter(({ pattern }) => pattern.test(symptomText)).map(({ label }) => label);
-
-  if (input.symptomSeverity === "severe") {
-    redFlags.push("severe symptom intensity");
+function dosageFor(product: OTCProduct, ageGroup: AgeGroup) {
+  if (ageGroup === "child" && product.dosageChild) {
+    return product.dosageChild;
   }
 
-  if (input.age < 12) {
-    redFlags.push("child case requires caregiver/pharmacist confirmation");
-  }
-
-  return [...new Set(redFlags)];
+  return product.dosageAdult;
 }
 
-function determineBlockedProducts(input: AssessmentInput) {
+function noCurrentMedication(currentMedications: string[]) {
+  const normalized = normalizeTerms(currentMedications);
+
+  return (
+    normalized.length === 0 ||
+    normalized.every((item) => /^(none|nil|n\/a|no medication|no medications)$/.test(item))
+  );
+}
+
+function determineAvoidances(input: AssessmentInput) {
+  const medications = normalizeTerms(input.currentMedications);
   const allergies = normalizeTerms(input.allergies);
-  const conditions = normalizeTerms(input.existingConditions);
-  const currentMedications = normalizeTerms(input.currentMedications);
-  const blocked = new Set<string>();
+  const avoidedProducts = new Set<string>();
   const notes = new Set<string>();
 
-  if (allergies.some((entry) => /(paracetamol|acetaminophen)/.test(entry))) {
-    blocked.add("Paracetamol");
+  if (medications.some((item) => /(warfarin|blood thinner|anticoagulant)/.test(item))) {
+    avoidedProducts.add("Ibuprofen");
+    avoidedProducts.add("Aspirin");
+    avoidedProducts.add("Diclofenac");
+    notes.add("Warfarin and similar blood thinners increase bleeding risk with NSAIDs such as ibuprofen, aspirin, and diclofenac.");
   }
 
-  if (allergies.some((entry) => /(ibuprofen|nsaid)/.test(entry))) {
-    blocked.add("Ibuprofen");
+  if (allergies.some((item) => /(paracetamol|acetaminophen)/.test(item))) {
+    avoidedProducts.add("Paracetamol");
+    notes.add("Paracetamol is excluded because it appears in the recorded allergy list.");
   }
 
-  if (allergies.some((entry) => /(antacid|calcium carbonate|magnesium)/.test(entry))) {
-    blocked.add("Antacid");
+  if (allergies.some((item) => /(cetirizine|antihistamine)/.test(item))) {
+    avoidedProducts.add("Cetirizine 10 mg");
+    notes.add("Cetirizine is excluded because of the recorded antihistamine allergy history.");
   }
 
-  if (allergies.some((entry) => /(cetirizine|loratadine|antihistamine)/.test(entry))) {
-    blocked.add("Loratadine 10 mg");
+  if (allergies.some((item) => /(dextromethorphan|cough syrup)/.test(item))) {
+    avoidedProducts.add("Dextromethorphan Cough Syrup");
+    notes.add("The cough suppressant option is excluded because of the recorded allergy history.");
   }
 
-  if (conditions.some((entry) => /(ulcer|gastric ulcer|stomach ulcer)/.test(entry))) {
-    blocked.add("Ibuprofen");
-    notes.add("Ulcer history makes NSAID-style pain relief less suitable.");
+  if (allergies.some((item) => /(flucorday|decongestant)/.test(item))) {
+    avoidedProducts.add("Flucorday Capsules");
+    notes.add("The cold-and-flu capsule option is excluded because of the recorded allergy history.");
   }
 
-  if (conditions.some((entry) => /(kidney|renal)/.test(entry))) {
-    blocked.add("Ibuprofen");
-    notes.add("Kidney conditions should narrow OTC pain-relief choices.");
-  }
-
-  if (conditions.some((entry) => /(liver)/.test(entry))) {
-    blocked.add("Paracetamol");
-    notes.add("Liver disease should trigger extra caution with paracetamol-containing products.");
-  }
-
-  if (currentMedications.some((entry) => /(warfarin|apixaban|rivaroxaban|blood thinner|anticoagulant)/.test(entry))) {
-    blocked.add("Ibuprofen");
-    notes.add("Blood-thinner use raises interaction risk for NSAID-style OTC pain relief.");
-  }
-
-  if (input.isPregnantOrBreastfeeding) {
-    blocked.add("Ibuprofen");
-    notes.add("Pregnancy or breastfeeding should narrow self-medication and lower the threshold for clinician review.");
+  if (input.ageGroup === "child") {
+    avoidedProducts.add("Flucorday Capsules");
+    avoidedProducts.add("Dextromethorphan Cough Syrup");
+    avoidedProducts.add("Cetirizine 10 mg");
+    notes.add("Child profiles require stricter age-based dosing, so adult-labelled cough, cold, and antihistamine products are not surfaced automatically.");
   }
 
   return {
-    blocked,
+    avoidedProducts: [...avoidedProducts],
+    blocked: avoidedProducts,
     notes: [...notes],
   };
 }
 
-function sanitizeSelfCareSteps(steps: string[], notes: string[]) {
-  const combined = [...steps, ...notes];
-  const cleaned = combined.map((step) => step.trim()).filter(Boolean);
+function buildProductRecommendation(productName: string, input: AssessmentInput, reason: string, caution?: string) {
+  const product = OTC_PRODUCT_CATALOG.find((entry) => entry.name === productName);
 
-  return [...new Set(cleaned)].slice(0, 5);
-}
-
-function normalizeMedicationContext(input: AssessmentInput) {
-  const medications = normalizeTerms(input.currentMedications);
-  const noCurrentMedication =
-    medications.length === 0 ||
-    medications.every((entry) => /^(none|nil|no medication|no medications|n\/a)$/.test(entry));
-
-  return {
-    medications,
-    noCurrentMedication,
-  };
-}
-
-function buildDemoScenarioOverride(
-  input: AssessmentInput,
-  blocked: Set<string>,
-  notes: string[],
-  redFlags: string[],
-): AssessmentResponse | null {
-  if (redFlags.length > 0 || input.age < 18) {
+  if (!product) {
     return null;
   }
 
-  const lowerSymptoms = input.symptoms.toLowerCase();
-  const { medications, noCurrentMedication } = normalizeMedicationContext(input);
-  const lowerAbdominalPain = /(lower abdomen|lower abdominal|abdominal pain|pelvic pain|cramp)/.test(lowerSymptoms);
-  const hasWarfarin = medications.some((entry) => /(warfarin)/.test(entry));
-  const hasCoughAndCatarrh =
-    /(cough)/.test(lowerSymptoms) &&
-    /(catarrh|catarrgh|runny nose|nasal discharge|cold|congestion)/.test(lowerSymptoms);
-
-  if (lowerAbdominalPain && hasWarfarin && !blocked.has("Paracetamol")) {
-    return {
-      summary:
-        "For this demo case, paracetamol is presented as the adult OTC pain-relief option when the symptom is lower abdominal pain and the current medication is warfarin.",
-      recommendedProducts: [
-        {
-          name: "Paracetamol",
-          reason: "Demo suggestion: Paracetamol 500 mg for 3 days is used here as the safer pain-relief option instead of NSAID-style products.",
-          caution:
-            "Because warfarin is listed as a current medication, keep strictly to label directions, avoid duplicate acetaminophen/paracetamol products, and escalate if pain persists, worsens, or is associated with bleeding.",
-        },
-      ],
-      selfCareSteps: sanitizeSelfCareSteps(
-        [
-          "Use the demo suggestion for short-term relief only and re-check the symptom if it is not improving within 3 days.",
-          "Escalate quickly if the pain becomes severe or if there is bleeding, fever, vomiting, or dizziness.",
-        ],
-        notes,
-      ),
-      escalationAdvice:
-        "Because lower abdominal pain can have important causes, speak to a clinician sooner if symptoms persist beyond the short demo window or feel more severe than expected.",
-      disclaimer: DISCLAIMER,
-      flags: {
-        severity: "medium",
-        needsClinician: true,
-        redFlags: [],
-      },
-    };
-  }
-
-  if (hasCoughAndCatarrh && noCurrentMedication) {
-    const recommendedProducts: RecommendationProduct[] = [];
-
-    if (!blocked.has("Paracetamol")) {
-      recommendedProducts.push({
-        name: "Paracetamol",
-        reason: "Demo suggestion: included for upper-respiratory discomfort, throat pain, body aches, or fever-like cold symptoms.",
-        caution: "Follow pack directions and avoid taking another product that also contains paracetamol/acetaminophen.",
-      });
-    }
-
-    if (!blocked.has("Loratadine 10 mg")) {
-      recommendedProducts.push({
-        name: "Loratadine 10 mg",
-        reason: "Demo suggestion: one tablet once daily for catarrh, runny nose, or allergy-like upper-respiratory symptoms.",
-        caution: "Adult demo suggestion: once daily. Follow the product label and avoid use if you have been told not to take antihistamines.",
-      });
-    }
-
-    recommendedProducts.push({
-      name: "Cough Syrup",
-      reason: "Demo suggestion: twice daily for 3 days to ease cough symptoms.",
-      caution: "Use the label directions for the specific syrup chosen, because OTC cough syrups do not all have the same active ingredients or dosing.",
-    });
-
-    return {
-      summary:
-        "For this demo case, the adult cough-and-catarrh flow suggests paracetamol, loratadine 10 mg once daily, and cough syrup as the short-term OTC combination.",
-      recommendedProducts: recommendedProducts.slice(0, 3),
-      selfCareSteps: sanitizeSelfCareSteps(
-        [
-          "Hydrate well, rest, and monitor whether the cough and catarrh are easing over the next 3 days.",
-          "Escalate sooner if there is chest pain, shortness of breath, high fever, or worsening symptoms.",
-        ],
-        notes,
-      ),
-      escalationAdvice:
-        "If the cough becomes severe, breathing becomes difficult, or symptoms are not improving after the short demo window, speak to a pharmacist or clinician.",
-      disclaimer: DISCLAIMER,
-      flags: {
-        severity: "low",
-        needsClinician: false,
-        redFlags: [],
-      },
-    };
-  }
-
-  return null;
+  return {
+    name: product.name,
+    dosage: dosageFor(product, input.ageGroup),
+    function: product.function,
+    reason,
+    caution,
+  };
 }
 
-export function buildFallbackAssessment(input: AssessmentInput): AssessmentResponse {
+function buildLocalAssessment(input: AssessmentInput): AssessmentResponse {
   const lowerSymptoms = input.symptoms.toLowerCase();
+  const symptomClusters = detectSymptomClusters(input.symptoms);
   const redFlags = detectRedFlags(input);
-  const { blocked, notes } = determineBlockedProducts(input);
+  const { avoidedProducts, blocked, notes } = determineAvoidances(input);
+  const recommendations: RecommendationProduct[] = [];
+  const safetyNotes = new Set<string>(notes);
+  const currentMedicationFree = noCurrentMedication(input.currentMedications);
+  const hasWarfarin = normalizeTerms(input.currentMedications).some((item) => /(warfarin)/.test(item));
+  const hasPain = /(pain|ache|cramp|abdominal|abdomen)/.test(lowerSymptoms);
+  const hasCough = /(cough)/.test(lowerSymptoms);
+  const hasCatarrh = /(catarrh|runny nose|congestion|nasal|cold)/.test(lowerSymptoms);
 
   if (redFlags.length > 0) {
+    safetyNotes.add("The symptom pattern should be escalated rather than self-treated because red flags were detected.");
+
     return {
-      summary: "The symptom profile suggests a higher-risk situation, so clinician or pharmacist review is safer than self-treating with OTC products.",
+      summary: "This symptom profile is higher risk, so the system is withholding OTC recommendations and directing the user to clinical review.",
+      symptomClusters,
+      avoidedProducts,
       recommendedProducts: [],
-      selfCareSteps: sanitizeSelfCareSteps(
-        [
-          "Avoid relying on self-medication alone for this symptom pattern.",
-          "Seek urgent help now if symptoms are rapidly worsening.",
-        ],
-        notes,
-      ),
+      explanation: "The safety filter triggered because the current symptom pattern contains warning signs that should not be managed with OTC self-treatment alone.",
+      safetyNotes: [...safetyNotes],
       escalationAdvice:
-        "Please speak to a clinician as soon as possible. If there is severe pain, bleeding, fainting, chest symptoms, or breathing difficulty, treat it as urgent.",
+        "Consult a healthcare professional as soon as possible. Seek urgent medical help immediately if symptoms are severe, rapidly worsening, or involve breathing difficulty, bleeding, or fainting.",
       disclaimer: DISCLAIMER,
       flags: {
         severity: "high",
@@ -357,179 +269,236 @@ export function buildFallbackAssessment(input: AssessmentInput): AssessmentRespo
     };
   }
 
-  const products: RecommendationProduct[] = [];
+  if (input.ageGroup === "adult" && hasPain && hasWarfarin && !blocked.has("Paracetamol")) {
+    const paracetamol = buildProductRecommendation(
+      "Paracetamol",
+      input,
+      "Paracetamol is suggested for pain relief because it has a lower interaction risk with warfarin than NSAIDs such as ibuprofen, aspirin, or diclofenac.",
+      "If pain persists after 3 days, worsens, or is associated with bleeding, seek medical review promptly.",
+    );
 
-  if (/(pain|cramp|headache|fever|body ache|abdomen|abdominal)/.test(lowerSymptoms)) {
-    if (!blocked.has("Paracetamol")) {
-      products.push({
-        name: "Paracetamol",
-        reason: "A common OTC option for mild pain or fever when the profile does not suggest it should be avoided.",
-        caution: "Check the pack for dosing instructions and avoid duplicate acetaminophen/paracetamol products.",
-      });
-    } else if (!blocked.has("Ibuprofen")) {
-      products.push({
-        name: "Ibuprofen",
-        reason: "An OTC option for pain or inflammation when the health profile does not indicate a typical NSAID risk.",
-        caution: "Take with food and avoid if you have stomach-ulcer, kidney, blood-thinner, or pregnancy-related risk factors.",
-      });
+    if (paracetamol) {
+      recommendations.push(paracetamol);
+    }
+
+    safetyNotes.add("Avoid NSAID pain relievers while warfarin is listed as a current medication.");
+    safetyNotes.add("Seek immediate help if abdominal pain becomes severe.");
+
+    return {
+      summary: "The engine identified a pain-related symptom pattern and filtered out NSAIDs because warfarin is listed in the current medication profile.",
+      symptomClusters: symptomClusters.length > 0 ? symptomClusters : ["Pain / inflammation"],
+      avoidedProducts,
+      recommendedProducts: recommendations,
+      explanation:
+        "Paracetamol is the preferred OTC option in this case because it supports short-term pain relief without the same bleeding-risk concern associated with NSAIDs in a warfarin user.",
+      safetyNotes: [...safetyNotes],
+      escalationAdvice:
+        "If pain persists after 3 days, becomes severe, or is associated with bleeding, dizziness, vomiting, or fever, consult a healthcare professional immediately.",
+      disclaimer: DISCLAIMER,
+      flags: {
+        severity: "medium",
+        needsClinician: true,
+        redFlags: [],
+      },
+    };
+  }
+
+  if (input.ageGroup === "adult" && hasCough && hasCatarrh && currentMedicationFree) {
+    const flucorday = !blocked.has("Flucorday Capsules")
+      ? buildProductRecommendation(
+          "Flucorday Capsules",
+          input,
+          "This may help relieve cold and flu symptoms and reduce nasal congestion in an uncomplicated adult cough-and-catarrh presentation.",
+          "Do not exceed the pack dosage and review the label carefully if using any other cold medicines.",
+        )
+      : null;
+    const coughSyrup = !blocked.has("Dextromethorphan Cough Syrup")
+      ? buildProductRecommendation(
+          "Dextromethorphan Cough Syrup",
+          input,
+          "This may help suppress persistent cough and soothe throat irritation during short-term self-care.",
+          "Use the label instructions for the exact syrup selected.",
+        )
+      : null;
+    const cetirizine = !blocked.has("Cetirizine 10 mg")
+      ? buildProductRecommendation(
+          "Cetirizine 10 mg",
+          input,
+          "This may help reduce catarrh and other allergy-like nasal symptoms that often accompany mild upper respiratory irritation.",
+        )
+      : null;
+
+    for (const product of [flucorday, coughSyrup, cetirizine]) {
+      if (product) {
+        recommendations.push(product);
+      }
+    }
+
+    safetyNotes.add("Do not exceed the recommended dosage for cough, cold, or antihistamine products.");
+    safetyNotes.add("If symptoms last more than 5 to 7 days, consult a doctor.");
+
+    return {
+      summary: "The symptom interpretation engine grouped the case under upper respiratory irritation with allergy-linked nasal symptoms.",
+      symptomClusters: symptomClusters.length > 0 ? symptomClusters : ["Respiratory", "Allergic / respiratory"],
+      avoidedProducts,
+      recommendedProducts: recommendations,
+      explanation:
+        "These medications may help relieve cough and nasal symptoms associated with common cold or mild respiratory irritation while keeping the recommendation within routine OTC self-care.",
+      safetyNotes: [...safetyNotes],
+      escalationAdvice:
+        "If symptoms last beyond 5 to 7 days, breathing becomes difficult, or fever develops, consult a doctor.",
+      disclaimer: DISCLAIMER,
+      flags: {
+        severity: "low",
+        needsClinician: false,
+        redFlags: [],
+      },
+    };
+  }
+
+  if (hasPain && !blocked.has("Paracetamol")) {
+    const paracetamol = buildProductRecommendation(
+      "Paracetamol",
+      input,
+      input.ageGroup === "child"
+        ? "Paracetamol is the most conservative OTC pain-relief option surfaced for a child case, provided pediatric label dosing is used."
+        : "Paracetamol is a conservative first-line OTC option for short-term pain relief in this symptom pattern.",
+      input.ageGroup === "child"
+        ? "Use a pediatric formulation only and confirm the label dose carefully."
+        : "Follow the product label and avoid using multiple paracetamol-containing medicines at the same time.",
+    );
+
+    if (paracetamol) {
+      recommendations.push(paracetamol);
     }
   }
 
-  if (/(heartburn|acid|reflux|indigestion|stomach burn)/.test(lowerSymptoms) && !blocked.has("Antacid")) {
-    products.push({
-      name: "Antacid",
-      reason: "This may help short-term acid-related discomfort such as heartburn or indigestion.",
-      caution: "Check the label for spacing from other medicines.",
-    });
+  if (input.ageGroup === "adult" && hasCough && !blocked.has("Dextromethorphan Cough Syrup")) {
+    const coughSyrup = buildProductRecommendation(
+      "Dextromethorphan Cough Syrup",
+      input,
+      "This may help suppress a mild cough during short-term OTC self-care.",
+      "Use the label directions for the exact syrup chosen.",
+    );
+
+    if (coughSyrup) {
+      recommendations.push(coughSyrup);
+    }
   }
 
-  if (/(diarrhea|vomiting|dehydration|lightheaded)/.test(lowerSymptoms)) {
-    products.push({
-      name: "Oral Rehydration Salts",
-      reason: "This helps replace fluids and electrolytes when dehydration support is needed.",
-      caution: "Escalate if vomiting is persistent or there is blood in stool.",
-    });
+  if (input.ageGroup === "adult" && hasCatarrh && !blocked.has("Cetirizine 10 mg")) {
+    const cetirizine = buildProductRecommendation(
+      "Cetirizine 10 mg",
+      input,
+      "This may help reduce catarrh and related allergy-style nasal symptoms.",
+    );
+
+    if (cetirizine) {
+      recommendations.push(cetirizine);
+    }
   }
 
-  if (/(allergy|sneez|itchy|runny nose|hay fever|catarrh|catarrgh)/.test(lowerSymptoms) && !blocked.has("Loratadine 10 mg")) {
-    products.push({
-      name: "Loratadine 10 mg",
-      reason: "This can help allergic symptoms such as sneezing, itchy eyes, or a runny nose.",
-      caution: "Choose a non-drowsy option if you need to stay alert.",
-    });
+  if (input.ageGroup === "adult" && hasCough && hasCatarrh && !blocked.has("Flucorday Capsules")) {
+    const flucorday = buildProductRecommendation(
+      "Flucorday Capsules",
+      input,
+      "This adult-labelled product may help relieve combined cough, cold, and congestion symptoms in short-term OTC care.",
+      "Avoid combining it with overlapping cold medicines without checking the label first.",
+    );
+
+    if (flucorday) {
+      recommendations.unshift(flucorday);
+    }
   }
 
-  if (/(sore throat|throat|cough)/.test(lowerSymptoms)) {
-    products.push({
-      name: "Cough Syrup",
-      reason: "This can help ease a mild cough in the short term.",
-      caution: "Use the label directions for the exact syrup selected.",
-    });
+  const uniqueRecommendations = [...new Map(recommendations.map((product) => [product.name, product])).values()].slice(0, 3);
+  const needsClinician =
+    input.ageGroup === "child" && uniqueRecommendations.length === 0
+      ? true
+      : /5-7 days|more than 7 days|more than a week/.test(input.symptomDuration.toLowerCase());
+
+  if (/5-7 days|more than 7 days|more than a week/.test(input.symptomDuration.toLowerCase())) {
+    safetyNotes.add("Longer symptom duration lowers the threshold for clinician review.");
   }
 
-  if (/(blocked nose|congestion|stuffy nose|sinus)/.test(lowerSymptoms)) {
-    products.push({
-      name: "Saline Nasal Spray",
-      reason: "This can relieve nasal dryness and mild congestion without using a drug-based decongestant.",
-    });
+  if (input.ageGroup === "child") {
+    safetyNotes.add("Child dosing should be confirmed from the product label or a pharmacist before use.");
   }
-
-  const recommendedProducts = [...new Map(products.map((product) => [product.name, product])).values()].slice(0, 3);
 
   return {
     summary:
-      recommendedProducts.length > 0
-        ? "The fallback engine found OTC options that generally fit the symptom profile."
-        : "No clean OTC recommendation surfaced from the fallback engine, so pharmacist review is the safer next step.",
-    recommendedProducts,
-    selfCareSteps: sanitizeSelfCareSteps(
-      [
-        "Rest, hydrate, and follow the product label carefully.",
-        "Stop self-treatment and escalate if symptoms worsen or do not improve.",
-      ],
-      notes,
-    ),
+      uniqueRecommendations.length > 0
+        ? "The system matched the symptom profile to OTC products commonly used for short-term symptom relief."
+        : "No sufficiently safe OTC option surfaced automatically for this profile, so pharmacist or clinician guidance is the safer next step.",
+    symptomClusters,
+    avoidedProducts,
+    recommendedProducts: uniqueRecommendations,
+    explanation:
+      uniqueRecommendations.length > 0
+        ? "The recommendation balances symptom matching, age restrictions, and simple medication-safety checks before showing OTC options."
+        : "The safety filter stayed conservative because the profile needs age-based dosing confirmation or a closer professional review.",
+    safetyNotes: [...safetyNotes],
     escalationAdvice:
-      /(abdomen|abdominal|pelvic)/.test(lowerSymptoms) || input.isPregnantOrBreastfeeding
-        ? "Abdominal or pregnancy-related concerns should be escalated sooner if pain persists, worsens, or becomes severe."
-        : "Speak to a pharmacist or clinician if symptoms worsen, feel unusual, or last longer than expected.",
+      uniqueRecommendations.length > 0
+        ? "If symptoms worsen, last longer than expected, or new warning signs appear, consult a healthcare professional."
+        : "Consult a pharmacist or clinician before choosing an OTC treatment for this case.",
     disclaimer: DISCLAIMER,
     flags: {
-      severity: /(abdomen|abdominal|pelvic)/.test(lowerSymptoms) ? "medium" : "low",
-      needsClinician: /(abdomen|abdominal|pelvic)/.test(lowerSymptoms),
+      severity: needsClinician ? "medium" : "low",
+      needsClinician,
       redFlags: [],
     },
   };
 }
 
-export function applySafetyGuardrails(
-  candidate: AssessmentResponse,
-  input: AssessmentInput,
-): AssessmentResponse {
-  const redFlags = detectRedFlags(input);
-  const { blocked, notes } = determineBlockedProducts(input);
-  const demoScenarioOverride = buildDemoScenarioOverride(input, blocked, notes, redFlags);
+export function buildFallbackAssessment(input: AssessmentInput): AssessmentResponse {
+  return buildLocalAssessment(input);
+}
 
-  if (demoScenarioOverride) {
-    return demoScenarioOverride;
+export function applySafetyGuardrails(candidate: AssessmentResponse, input: AssessmentInput): AssessmentResponse {
+  const baseline = buildLocalAssessment(input);
+  const { blocked, avoidedProducts, notes } = determineAvoidances(input);
+  const redFlags = detectRedFlags(input);
+
+  if (redFlags.length > 0) {
+    return baseline;
   }
 
-  const recommendedProducts =
-    redFlags.length > 0
-      ? []
-      : candidate.recommendedProducts
-          .map<RecommendationProduct | null>((product) => {
-            const catalogMatch = resolveCatalogProduct(product.name);
+  const safeRecommendations = candidate.recommendedProducts
+    .map<RecommendationProduct | null>((product) => {
+      const catalogProduct = resolveCatalogProduct(product.name);
 
-            if (!catalogMatch || blocked.has(catalogMatch.name)) {
-              return null;
-            }
+      if (!catalogProduct || blocked.has(catalogProduct.name)) {
+        return null;
+      }
 
-            const caution = [product.caution?.trim(), catalogMatch.avoidWhen].filter(Boolean).join(" ");
-            const safeProduct: RecommendationProduct = {
-              name: catalogMatch.name,
-              reason: product.reason.trim(),
-            };
+      return {
+        name: catalogProduct.name,
+        dosage: dosageFor(catalogProduct, input.ageGroup),
+        function: catalogProduct.function,
+        reason: product.reason.trim(),
+        caution: [product.caution?.trim(), catalogProduct.avoidWhen].filter(Boolean).join(" "),
+      };
+    })
+    .filter((product): product is RecommendationProduct => product !== null)
+    .slice(0, 3);
 
-            if (caution) {
-              safeProduct.caution = caution;
-            }
-
-            return safeProduct;
-          })
-          .filter((product): product is RecommendationProduct => product !== null)
-          .slice(0, 3);
-  const fallbackAssessment =
-    redFlags.length === 0 && recommendedProducts.length === 0 ? buildFallbackAssessment(input) : null;
-
-  const selfCareSteps =
-    redFlags.length > 0
-      ? sanitizeSelfCareSteps(
-          [
-            "Avoid relying on self-medication alone until you speak with a clinician or pharmacist.",
-            "If symptoms are rapidly worsening, seek urgent help immediately.",
-          ],
-          notes,
-        )
-      : fallbackAssessment && fallbackAssessment.recommendedProducts.length > 0
-        ? sanitizeSelfCareSteps(fallbackAssessment.selfCareSteps, notes)
-      : sanitizeSelfCareSteps(candidate.selfCareSteps, notes);
+  if (safeRecommendations.length === 0) {
+    return baseline;
+  }
 
   return {
-    summary:
-      redFlags.length > 0
-        ? "The symptom profile includes red flags, so the safer recommendation is clinician review rather than OTC self-treatment."
-        : recommendedProducts.length > 0
-          ? candidate.summary.trim()
-          : fallbackAssessment && fallbackAssessment.recommendedProducts.length > 0
-            ? fallbackAssessment.summary
-          : "No OTC product from the approved catalog remained suitable after safety checks, so pharmacist or clinician review is the safer next step.",
-    recommendedProducts:
-      recommendedProducts.length > 0
-        ? recommendedProducts
-        : fallbackAssessment && fallbackAssessment.recommendedProducts.length > 0
-          ? fallbackAssessment.recommendedProducts
-          : [],
-    selfCareSteps,
-    escalationAdvice:
-      redFlags.length > 0
-        ? "Please speak to a clinician as soon as possible. Seek urgent care now for severe pain, chest symptoms, breathing difficulty, bleeding, fainting, or rapidly worsening symptoms."
-        : fallbackAssessment && fallbackAssessment.recommendedProducts.length > 0
-          ? fallbackAssessment.escalationAdvice
-        : candidate.escalationAdvice.trim(),
+    summary: candidate.summary.trim() || baseline.summary,
+    symptomClusters: candidate.symptomClusters.length > 0 ? candidate.symptomClusters : baseline.symptomClusters,
+    avoidedProducts: [...new Set([...avoidedProducts, ...candidate.avoidedProducts])],
+    recommendedProducts: safeRecommendations,
+    explanation: candidate.explanation.trim() || baseline.explanation,
+    safetyNotes: [...new Set([...candidate.safetyNotes, ...notes])],
+    escalationAdvice: candidate.escalationAdvice.trim() || baseline.escalationAdvice,
     disclaimer: DISCLAIMER,
     flags: {
-      severity:
-        redFlags.length > 0
-          ? "high"
-          : fallbackAssessment && fallbackAssessment.recommendedProducts.length > 0
-            ? fallbackAssessment.flags.severity
-            : candidate.flags.severity,
-      needsClinician:
-        redFlags.length > 0 ||
-        candidate.flags.needsClinician ||
-        fallbackAssessment?.flags.needsClinician ||
-        input.isPregnantOrBreastfeeding,
+      severity: candidate.flags.severity,
+      needsClinician: candidate.flags.needsClinician || baseline.flags.needsClinician,
       redFlags,
     },
   };
@@ -541,59 +510,30 @@ export function parseAssessmentPayload(payload: unknown): AssessmentInput {
   }
 
   const data = payload as Record<string, unknown>;
-  const age = Number(data.age);
-  const weightRaw = data.weightKg;
-  const weightKg =
-    weightRaw === null || weightRaw === undefined || weightRaw === ""
-      ? null
-      : Number(weightRaw);
-  const sex = typeof data.sex === "string" ? data.sex.trim() : "";
+  const ageGroup = data.ageGroup === "adult" || data.ageGroup === "child" ? data.ageGroup : null;
   const symptoms = typeof data.symptoms === "string" ? data.symptoms.trim() : "";
   const symptomDuration = typeof data.symptomDuration === "string" ? data.symptomDuration.trim() : "";
-  const symptomSeverity =
-    data.symptomSeverity === "mild" || data.symptomSeverity === "moderate" || data.symptomSeverity === "severe"
-      ? data.symptomSeverity
-      : null;
-  const allergies = splitList(data.allergies);
-  const existingConditions = splitList(data.existingConditions);
   const currentMedications = splitList(data.currentMedications);
-  const isPregnantOrBreastfeeding = Boolean(data.isPregnantOrBreastfeeding);
+  const allergies = splitList(data.allergies);
 
-  if (!Number.isFinite(age) || age < 1 || age > 120) {
-    throw new Error("Age must be a valid number between 1 and 120.");
+  if (!ageGroup) {
+    throw new Error("Please choose whether the patient is an adult or child.");
   }
 
-  if (weightKg !== null && (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 500)) {
-    throw new Error("Weight must be a valid number when provided.");
-  }
-
-  if (!sex) {
-    throw new Error("Sex is required.");
-  }
-
-  if (!symptoms || symptoms.length < 4) {
-    throw new Error("Please describe how you feel in a few words.");
+  if (!symptoms || symptoms.length < 3) {
+    throw new Error("Please enter the symptom or symptom combination to assess.");
   }
 
   if (!symptomDuration) {
-    throw new Error("Please tell the app how long the symptom has been going on.");
-  }
-
-  if (!symptomSeverity) {
-    throw new Error("Please choose the symptom severity.");
+    throw new Error("Please specify how long the symptoms have been present.");
   }
 
   return {
-    age,
-    sex,
-    weightKg,
-    allergies,
-    existingConditions,
-    currentMedications,
-    isPregnantOrBreastfeeding,
-    symptomDuration,
-    symptomSeverity,
+    ageGroup,
     symptoms,
+    currentMedications,
+    allergies,
+    symptomDuration,
   };
 }
 
@@ -606,8 +546,11 @@ export function isAssessmentResponse(value: unknown): value is AssessmentRespons
 
   return (
     typeof data.summary === "string" &&
+    Array.isArray(data.symptomClusters) &&
+    Array.isArray(data.avoidedProducts) &&
     Array.isArray(data.recommendedProducts) &&
-    Array.isArray(data.selfCareSteps) &&
+    typeof data.explanation === "string" &&
+    Array.isArray(data.safetyNotes) &&
     typeof data.escalationAdvice === "string" &&
     typeof data.disclaimer === "string" &&
     typeof data.flags === "object" &&

@@ -8,12 +8,12 @@ export function SiteFooter() {
           <div>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)] text-sm font-bold text-white">
-                OW
+                AI
               </div>
-              <div className="text-lg font-semibold">OTC Wellness AI</div>
+              <div className="text-lg font-semibold">OTC Suggestion System</div>
             </div>
             <p className="mt-3 max-w-xl text-sm text-[var(--muted-foreground)]">
-              Presentation-ready SaaS demo for safe OTC wellness guidance. Not a diagnosis or emergency service.
+              Personalized OTC recommendation demo with symptom clustering, interaction screening, and explainable outputs. Not a diagnosis or emergency service.
             </p>
           </div>
           <div className="flex flex-wrap gap-4 text-sm font-medium text-[var(--muted-foreground)]">

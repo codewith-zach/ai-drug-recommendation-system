@@ -1,13 +1,14 @@
-# OTC Wellness Demo
+# AI OTC Personalized Suggestion System
 
-A presentation-ready AI-powered OTC wellness SaaS demo built with Next.js and the OpenAI API.
+A presentation-ready OTC product recommendation demo built with Next.js and the OpenAI API.
 
 ## Features
 
 - Marketing landing page with pricing
 - Demo login and sign-up flows
-- OpenAI-driven assessment for age, sex, body weight, allergies, conditions, current medications, pregnancy status, severity, duration, and symptoms
-- Safety-first OTC suggestions with OpenAI as the recommendation engine and local output guardrails
+- OTC assessment for age group, symptoms, current medications, optional allergies, and symptom duration
+- Symptom clustering, medication-safety filtering, avoided-product logic, and explainable OTC suggestions
+- Two built-in demo scenarios from the requirements doc: warfarin with abdominal pain, and cough with catarrh
 - Mock subscription checkout
 - Ready for Vercel deployment
 
@@ -36,4 +37,4 @@ A presentation-ready AI-powered OTC wellness SaaS demo built with Next.js and th
 - `OPENAI_API_KEY`: required for the AI recommendation engine
 - `OPENAI_MODEL`: optional, defaults to `gpt-5.2`
 
-If no OpenAI key is provided, the app falls back to a simpler local recommendation path so the demo still runs.
+If no OpenAI key is provided, the app falls back to the local rule-based OTC recommendation engine so the demo still runs.
