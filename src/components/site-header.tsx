@@ -13,11 +13,11 @@ export function SiteHeader() {
         <div className="glass flex items-center justify-between rounded-full bg-white/90 px-4 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary)] text-sm font-bold text-white">
-              AI
+              OW
             </div>
             <div>
-              <div className="text-lg font-semibold leading-none">OTC Suggestion System</div>
-              <div className="text-xs text-[var(--muted-foreground)]">Medication-aware personalized guidance</div>
+              <div className="text-lg font-semibold leading-none">OTC Wellness AI</div>
+              <div className="text-xs text-[var(--muted-foreground)]">Demo-ready personalized guidance</div>
             </div>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">

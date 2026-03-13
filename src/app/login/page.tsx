@@ -4,8 +4,8 @@ export default function LoginPage() {
   return (
     <AuthShell
       mode="login"
-      title="Login to the OTC suggestion dashboard"
-      subtitle="Use this screen in the presentation to show returning-user flow before entering the personalized OTC assessment."
+      title="Login to your wellness dashboard"
+      subtitle="Use this screen in the presentation to show returning-user flow. It routes directly into the demo dashboard."
     />
   );
 }

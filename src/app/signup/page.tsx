@@ -5,7 +5,7 @@ export default function SignUpPage() {
     <AuthShell
       mode="signup"
       title="Create your demo account"
-      subtitle="Show a realistic onboarding experience, then move directly into the personalized OTC suggestion flow without implementing a full identity stack."
+      subtitle="Show a realistic onboarding experience, then move directly into the product without implementing a full identity stack."
     />
   );
 }

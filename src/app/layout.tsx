@@ -8,8 +8,8 @@ const sans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "AI OTC Personalized Suggestion System",
-  description: "A medication-aware OTC recommendation engine with symptom interpretation, safety filtering, and explainable guidance.",
+  title: "OTC Wellness AI",
+  description: "A presentation-ready AI wellness SaaS for OTC product guidance.",
 };
 
 export default function RootLayout({

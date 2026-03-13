@@ -3,9 +3,9 @@ import { AssessmentForm } from "@/components/assessment-form";
 import { SiteFooter } from "@/components/site-footer";
 
 const dashboardStats = [
-  { label: "Core layers", value: "5" },
-  { label: "Sample cases", value: "2" },
-  { label: "Safety filter", value: "Active" },
+  { label: "Demo assessments", value: "12.4k" },
+  { label: "Average response time", value: "1.8s" },
+  { label: "Investor pitch mode", value: "ON" },
 ];
 
 export default function AppDashboardPage() {
@@ -19,10 +19,10 @@ export default function AppDashboardPage() {
                 <div>
                   <span className="eyebrow">Dashboard</span>
                   <h1 className="mt-5 text-4xl font-bold tracking-tight md:text-6xl">
-                    Personalized OTC suggestions in one safety-screened workflow.
+                    Personalized OTC guidance in one clean workflow.
                   </h1>
                   <p className="theme-muted mt-5 max-w-3xl text-base leading-7">
-                    This screen now demonstrates the exact engine described in the requirements document: symptom interpretation, drug-interaction filtering, explainable recommendations, and escalation guidance.
+                    This is the presentation flow after login. Start the assessment, show the recommendation, then pivot to pricing or mock checkout if the audience asks about monetization.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -47,15 +47,15 @@ export default function AppDashboardPage() {
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
                 <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--background)] p-4">
                   <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Assessment mode</div>
-                  <p className="mt-2 text-sm leading-6">The assessment is narrowed to age group, symptoms, medications, allergies, and symptom duration.</p>
+                  <p className="mt-2 text-sm leading-6">OpenAI is the primary engine. Local rules only filter unsafe outputs.</p>
                 </div>
                 <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--background)] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Safety filter</div>
-                  <p className="mt-2 text-sm leading-6">Medication interactions, adult-only products, and symptom persistence all affect what can be recommended.</p>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Audience story</div>
+                  <p className="mt-2 text-sm leading-6">This screen demonstrates intake, recommendation quality, and product monetization in one pass.</p>
                 </div>
                 <div className="rounded-[1.25rem] border border-[var(--border)] bg-[var(--background)] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Explainability</div>
-                  <p className="mt-2 text-sm leading-6">Each result now shows symptom clusters, avoided products, dosage, reasoning, and escalation advice.</p>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Data posture</div>
+                  <p className="mt-2 text-sm leading-6">The demo treats health answers as session-only and focuses on presentation-safe interactions.</p>
                 </div>
               </div>
             </div>
@@ -69,13 +69,13 @@ export default function AppDashboardPage() {
             <div className="theme-card rounded-[1.5rem] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Recommended demo path</div>
               <p className="mt-3 text-sm leading-6">
-                Start with the warfarin abdominal-pain case to show NSAID avoidance, then switch to cough and catarrh to show multi-product OTC recommendations.
+                Load the sample case, run the AI assessment, explain the safety-filtered result, then click pricing or mock upgrade to show the SaaS business model.
               </p>
             </div>
             <div className="theme-card rounded-[1.5rem] p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Key message</div>
               <p className="mt-3 text-sm leading-6">
-                The product recommends only low-risk OTC support and stays disciplined enough to withhold treatment when symptoms look risky or the age profile is uncertain.
+                The product is broad enough for multiple OTC categories, but disciplined enough to escalate risky cases instead of pretending to diagnose.
               </p>
             </div>
           </div>

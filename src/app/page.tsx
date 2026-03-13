@@ -5,16 +5,16 @@ import { SiteHeader } from "@/components/site-header";
 
 const featureCards = [
   {
-    title: "Focused OTC intake",
-    text: "Capture age group, symptoms, current medications, allergies, and symptom duration in the exact flow described by the requirements document.",
+    title: "Structured health intake",
+    text: "Collect age, sex, body weight, allergies, conditions, current medications, pregnancy status, severity, duration, and symptom narrative in one branded flow.",
   },
   {
-    title: "Safety-first filtering",
-    text: "The engine maps symptom clusters, checks medication interaction risks like warfarin plus NSAIDs, and suppresses unsafe OTC choices before display.",
+    title: "OpenAI-powered decision engine",
+    text: "OpenAI analyzes the full health profile and generates the recommendation, while local guardrails filter unsafe outputs before display.",
   },
   {
-    title: "Explainable suggestions",
-    text: "Every result includes dosage guidance, avoided products, plain-language reasoning, and escalation advice so the recommendation is auditable.",
+    title: "SaaS-ready presentation",
+    text: "Landing page, pricing, login, dashboard, and mock upgrade journey are all included for tomorrow’s pitch.",
   },
 ];
 
@@ -27,12 +27,12 @@ export default function HomePage() {
         <div className="shell">
           <div className="theme-card theme-spotlight rounded-[2rem] px-6 py-12 md:px-10 md:py-16">
             <div className="relative z-10 mx-auto max-w-4xl text-center">
-              <span className="eyebrow">AI OTC Suggestion Engine</span>
+              <span className="eyebrow">OTC Wellness SaaS Demo</span>
               <h1 className="section-title mt-6 text-4xl font-bold tracking-tight md:text-6xl">
-                AI OTC recommendations shaped around symptoms, medication safety, and explainable guidance.
+                OpenAI-powered OTC recommendations tailored to the full patient profile.
               </h1>
               <p className="theme-muted mx-auto mt-6 max-w-3xl text-lg leading-8">
-                The system is built around the requirements doc: users enter age group, symptoms, medication history, allergies, and duration, then receive safe OTC suggestions with explicit interaction filtering and escalation advice.
+                Show a believable health-tech product by tomorrow: users sign up, describe symptoms, medications, health history, and urgency, then receive AI-generated OTC guidance with a clean SaaS conversion flow.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/app" className="btn-solid rounded-full px-6 py-3 text-center text-sm font-semibold transition">
@@ -45,15 +45,15 @@ export default function HomePage() {
               <div className="mt-10 flex flex-col items-center justify-center gap-6 border-t border-[var(--border)] pt-8 text-sm text-[var(--muted-foreground)] sm:flex-row">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                  Symptom clustering and OTC matching
+                  OpenAI-driven recommendation engine
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-                  Drug interaction safety filter
+                  Safety-filtered OTC catalog
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                  Explainable recommendation layer
+                  Session-only intake for the demo
                 </div>
               </div>
             </div>
@@ -65,20 +65,20 @@ export default function HomePage() {
         <div className="shell grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="theme-card rounded-[1.75rem] p-6 md:p-8">
             <div className="theme-chip inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]">
-              System Inputs
+              What the engine uses
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4">
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Input</div>
-                <div className="mt-3 text-sm leading-6">Age group, symptoms, current medications, allergies, and duration of symptoms</div>
+                <div className="mt-3 text-sm leading-6">Age, sex, weight, allergies, conditions, medications, severity, duration, symptoms</div>
               </div>
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Logic</div>
-                <div className="mt-3 text-sm leading-6">Symptom interpretation, medication interaction screening, age restrictions, and guideline-based OTC product selection.</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Engine</div>
+                <div className="mt-3 text-sm leading-6">OpenAI reasons over the full profile, then local safety rules validate the output.</div>
               </div>
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Output</div>
-                <div className="mt-3 text-sm leading-6">Recommended products, avoided drugs, dosage suggestions, explanation, and advice on when to seek care.</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Business</div>
+                <div className="mt-3 text-sm leading-6">Pricing, auth UI, and mock subscription conversion are already wired for the pitch.</div>
               </div>
             </div>
           </div>
@@ -86,20 +86,20 @@ export default function HomePage() {
           <div className="theme-card theme-spotlight rounded-[1.75rem] p-6 md:p-8">
             <div className="relative z-10">
               <div className="theme-chip inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]">
-                Five-layer engine
+                AI profile engine
               </div>
               <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
-                One flow from symptom entry to safe OTC suggestion.
+                One intake flow, multiple OTC use cases.
               </h2>
               <p className="theme-muted mt-4 text-base leading-7">
-                The product follows the document’s architecture: user input, symptom interpretation, interaction filtering, OTC recommendation, and explainable output.
+                The engine evaluates pain, fever, allergy, reflux, dehydration, cough, sore throat, and congestion patterns using the entire health profile instead of a single narrow scenario.
               </p>
               <div className="mt-6 grid gap-3 text-sm">
                 <div className="rounded-2xl border border-[var(--border)] bg-white/80 p-4">
-                  Lower abdominal pain with warfarin routes to paracetamol and explicitly blocks NSAIDs because of bleeding-risk concerns.
+                  OpenAI reasons over age, medications, pregnancy status, allergies, conditions, severity, and duration before suggesting any OTC option.
                 </div>
                 <div className="rounded-2xl border border-[var(--border)] bg-white/80 p-4">
-                  Cough and catarrh with no current medication routes to Flucorday, cough syrup, and cetirizine with dosage guidance and safety notes.
+                  Local guardrails remove unsafe options and switch to escalation advice whenever the profile looks risky.
                 </div>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function HomePage() {
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why this demo feels like a real product</h2>
             <p className="theme-muted mx-auto mt-4 max-w-2xl text-lg">
-              It now behaves like the requirements document, not a generic health-tech mockup.
+              The visual system, AI flow, and monetization story now match a polished wellness SaaS instead of a one-off prototype.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -137,19 +137,19 @@ export default function HomePage() {
           <div className="theme-card rounded-[1.75rem] p-6 md:p-8">
             <span className="eyebrow">How It Works</span>
             <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
-              A short symptom interview becomes a safety-screened OTC decision.
+              A short symptom interview becomes an AI-assisted OTC decision.
             </h2>
             <p className="theme-muted mt-5 text-base leading-7">
-              The dashboard now walks through the same sequence described in the document, from symptom clustering to recommendation and explanation.
+              The dashboard collects a richer health profile, lets OpenAI choose from the approved OTC catalog, and then applies final safety filters before showing the result.
             </p>
             <div className="mt-8 rounded-[1.5rem] border border-[var(--border)] bg-[var(--background)] p-6">
               <h3 className="text-xl font-semibold">What the audience will understand immediately</h3>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
-                  "Personalized OTC matches within seconds",
-                  "Warfarin and NSAID interaction checks",
-                  "Clear dosage and explanation for each suggestion",
-                  "Escalation when symptoms are too risky or persistent",
+                  "Personalized product matches within seconds",
+                  "Medication and condition-aware reasoning",
+                  "Clear escalation when self-treatment is risky",
+                  "Investor-friendly SaaS pricing story",
                 ].map((benefit) => (
                   <div key={benefit} className="flex items-start gap-3">
                     <span className="mt-1 h-5 w-5 rounded-full bg-[color:color-mix(in_srgb,var(--primary)_12%,transparent)] text-center text-xs font-bold leading-5 text-[var(--primary)]">
@@ -163,10 +163,10 @@ export default function HomePage() {
           </div>
           <div className="grid gap-4">
             {[
-              "Collect age group, symptoms, medications, allergies, and symptom duration",
-              "Interpret the symptom cluster and classify likely OTC support needs",
-              "Filter products against medication interactions and age restrictions",
-              "Return recommendations, avoided drugs, explanation, and escalation advice",
+              "Collect symptom context, medical history, and current medication use",
+              "Send the full profile to the OpenAI recommendation engine",
+              "Filter the result against local safety and catalog rules",
+              "Return recommendation, self-care, and escalation advice",
             ].map((step, index) => (
               <div key={step} className="theme-card rounded-[1.5rem] p-5">
                 <div className="flex items-start gap-4">
@@ -177,12 +177,12 @@ export default function HomePage() {
                     <div className="text-lg font-semibold">{step}</div>
                     <p className="theme-muted mt-2 text-sm leading-6">
                       {index === 0
-                        ? "The intake is now intentionally narrow so it matches the actual system overview in the document."
+                        ? "The flow captures the exact context needed for OTC reasoning without forcing a long onboarding."
                         : index === 1
-                          ? "Symptom interpretation groups free text into pain, respiratory, and allergy-linked pathways."
+                          ? "OpenAI does the heavy lifting and is no longer limited to a single ulcer-oriented rule path."
                           : index === 2
-                            ? "Unsafe options are suppressed before display, including NSAIDs when warfarin is present."
-                            : "The final screen shows not only what to use, but also what was deliberately avoided and when to escalate."}
+                            ? "Unsafe or off-catalog outputs are stripped before they ever reach the UI."
+                            : "The result stays concise enough for a live demo while still feeling medically cautious."}
                     </p>
                   </div>
                 </div>
@@ -199,7 +199,7 @@ export default function HomePage() {
               <div>
                 <span className="eyebrow">Safety Notice</span>
                 <p className="theme-muted mt-4 max-w-3xl text-base leading-7">
-                  This OTC suggestion system is for informational guidance only. It does not diagnose illness, replace clinical judgment, or handle emergencies. Red-flag symptoms should trigger immediate escalation.
+                  OTC Wellness AI is for informational guidance only. It is not a substitute for diagnosis, prescription, emergency support, or clinician judgment. Red-flag symptoms should trigger immediate escalation.
                 </p>
               </div>
               <Link href="/app" className="btn-solid rounded-full px-6 py-3 text-center text-sm font-semibold transition">
